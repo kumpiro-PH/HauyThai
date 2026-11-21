@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """THAI LOTTERY AI - Streamlit Cloud dashboard."""
+# 1. ทำความสะอาด import ด้านบน
+import io
 from pathlib import Path
 from collections import Counter
-from datetime import datetime
-import io
 import pandas as pd
 import streamlit as st
 
 from thai_engine import (
     from_thai_csv, from_thai_web, save_thai_csv, dedupe_thai,
-    rank_thai, thai_backtest, kind, expand_prize_rows, WEEKDAY_NAMES
+    expand_prize_rows, rank_thai, thai_backtest, kind
 )
 
 st.set_page_config(
