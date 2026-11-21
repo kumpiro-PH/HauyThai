@@ -29,7 +29,8 @@ PRIZE_FIELDS = [
     ("รางวัลที่ 1 · 6 ตัว", "six"),
     ("เลขหน้า 3 ตัว", "front3"),
     ("เลขท้าย 3 ตัว", "back3"),
-    ("เลขท้าย 2 ตัว", "last2"),
+    ("2 ตัวบน · 2 หลักท้ายรางวัลที่ 1", "top2"),
+    ("เลขท้าย 2 ตัว · รางวัลจริง", "last2"),
     ("เลข 5 ตัวท้ายจากรางวัลที่ 1", "suffix5"),
     ("เลข 4 ตัวท้ายจากรางวัลที่ 1", "suffix4"),
 ]
@@ -76,7 +77,8 @@ def rows_to_frame(rows):
         "วันที่": r["date"].strftime("%d/%m/%Y"),
         "วัน": WEEKDAY_NAMES[r["date"].weekday()],
         "รางวัลที่ 1": r["six"],
-        "เลขท้าย 2 ตัว": r["last2"],
+        "2 ตัวบน": r["six"][-2:],
+        "เลขท้าย 2 ตัว (รางวัลจริง)": r["last2"],
         "เลขหน้า 3 ตัว": f'{r["front3_1"]}  {r["front3_2"]}',
         "เลขท้าย 3 ตัว": f'{r["back3_1"]}  {r["back3_2"]}',
     } for r in rows])
@@ -197,7 +199,8 @@ with tabs[1]:
             f'รางวัลที่ 1 `{latest_day["six"]}` · เลขหน้า 3 ตัว '
             f'`{latest_day["front3_1"]} {latest_day["front3_2"]}` · '
             f'เลขท้าย 3 ตัว `{latest_day["back3_1"]} {latest_day["back3_2"]}` · '
-            f'เลขท้าย 2 ตัว `{latest_day["last2"]}`'
+            f'2 ตัวบน `{latest_day["six"][-2:]}` · '
+            f'เลขท้าย 2 ตัว (รางวัลจริง) `{latest_day["last2"]}`'
         )
         st.markdown("**ความถี่รายหลัก**")
         st.dataframe(pd.DataFrame([
