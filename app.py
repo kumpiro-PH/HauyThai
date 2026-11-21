@@ -270,9 +270,21 @@ with tabs[4]:
         index=1,
         help="ใช้ Walk-forward: ทุกงวดทดสอบจะใช้เฉพาะข้อมูลที่มาก่อนงวดนั้น",
     )
-    st.caption("เปรียบเทียบ AI Top 10 กับ Random Top 10 บนงวดทดสอบชุดเดียวกัน")
-    if len(rows_selected) < 12:
-        st.warning("ข้อมูลของวันที่เลือกยังไม่เพียงพอสำหรับ Backtest (ต้องมีอย่างน้อย 12 งวด)")
+    available_test_draws = max(0, len(rows_selected) - 10)
+    actual_test_draws = min(test_count, available_test_draws)
+    st.caption(
+        f"เปรียบเทียบ AI Top 10 กับ Random Top 10 เฉพาะข้อมูลตามวันที่เลือก: "
+        f"มีข้อมูล {len(rows_selected)} งวด · กัน 10 งวดแรกไว้เป็นข้อมูลตั้งต้น · "
+        f"ทดสอบได้สูงสุด {available_test_draws} งวด"
+    )
+    st.info(
+        f"คุณเลือกทดสอบ {test_count} งวด แต่จากข้อมูลของวันที่เลือกในฐานข้อมูล "
+        f"จะทดสอบได้จริง {actual_test_draws} งวด"
+        if actual_test_draws < test_count
+        else f"ข้อมูลของวันที่เลือกเพียงพอสำหรับทดสอบ {actual_test_draws} งวด"
+    )
+    if available_test_draws < 1:
+        st.warning("ข้อมูลของวันที่เลือกยังไม่เพียงพอ ต้องมีมากกว่า 10 งวดเพื่อเริ่ม Backtest")
     elif st.button("เริ่ม Backtest", key="backtest_run", type="primary"):
         with st.spinner("กำลังทดสอบย้อนหลังและเปรียบเทียบ Random..."):
             results = thai_backtest_comparison(rows_selected, 10, test_count)
@@ -291,9 +303,12 @@ with tabs[4]:
                     "AI − Random": delta,
                 })
             st.dataframe(pd.DataFrame(table), use_container_width=True, hide_index=True)
+            tested_values = [item["tested"] for item in results.values()]
+            actual_done = max(tested_values, default=0)
             st.caption(
-                f"ทดสอบสูงสุด {test_count} งวด · AI Top 10 เทียบ Random Top 10 "
-                "ด้วยจำนวนงวดเดียวกันและการสุ่มแบบทำซ้ำได้"
+                f"วันที่เลือก: {selected_label} · เลือกทดสอบ {test_count} งวด · "
+                f"ทดสอบจริง {actual_done} งวด · AI Top 10 เทียบ Random Top 10 "
+                "ด้วยงวดเดียวกันและการสุ่มแบบทำซ้ำได้"
             )
             st.caption("ผล Backtest เป็นผลย้อนหลัง ไม่รับประกันผลในอนาคต")
 
