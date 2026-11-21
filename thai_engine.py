@@ -583,6 +583,9 @@ def expand_prize_rows(rows, field):
         ]
     if field == "last2":
         return [{**r, "value": r["last2"]} for r in rows]
+    if field == "top2":
+        # 2 ตัวบน is derived from the final two digits of the first prize.
+        return [{**r, "value": r["six"][-2:]} for r in rows]
     if field == "six":
         return [{**r, "value": r["six"]} for r in rows]
     if field in ("suffix5", "suffix4"):
@@ -605,7 +608,8 @@ def thai_backtest(rows, top_n=10, test_count=30):
     """Walk-forward exact-match tests for each prize group."""
     clean = dedupe_thai(rows)
     result = {}
-    fields = [("รางวัลที่ 1", "six"), ("เลขท้าย 2 ตัว", "last2"),
+    fields = [("รางวัลที่ 1", "six"), ("2 ตัวบน (ท้ายรางวัลที่ 1)", "top2"),
+              ("เลขท้าย 2 ตัว (รางวัลจริง)", "last2"),
               ("เลขหน้า 3 ตัว", "front3"), ("เลขท้าย 3 ตัว", "back3")]
     for label, field in fields:
         hits = tested = 0
@@ -618,6 +622,7 @@ def thai_backtest(rows, top_n=10, test_count=30):
             except (ValueError, IndexError):
                 continue
             actual = ([target["six"]] if field == "six" else
+                      [target["six"][-2:]] if field == "top2" else
                       [target["last2"]] if field == "last2" else
                       [target[field + "_1"], target[field + "_2"]])
             hits += int(any(x in picks for x in actual))
