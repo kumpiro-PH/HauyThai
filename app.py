@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """THAI LOTTERY AI - Streamlit Cloud dashboard."""
+from pathlib import Path
 from collections import Counter
 from datetime import datetime
 import io
-from pathlib import Path
 import pandas as pd
 import streamlit as st
 
