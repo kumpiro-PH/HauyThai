@@ -10,7 +10,7 @@ import streamlit as st
 
 from thai_engine import (
     from_thai_csv, from_thai_web, save_thai_csv, dedupe_thai,
-    expand_prize_rows, rank_thai, thai_backtest, kind,
+    expand_prize_rows, rank_thai, thai_backtest_comparison, kind,
     rank_sets, rank_daily_sets, rank_hybrid_sets, WEEKDAY_NAMES,
 )
 
@@ -264,16 +264,37 @@ with tabs[3]:
 with tabs[4]:
     st.subheader(f"WALK-FORWARD BACKTEST · {selected_label}")
     st.caption("ทดสอบเฉพาะงวดของวันที่เลือก โดยใช้ข้อมูลก่อนงวดเป้าหมายเท่านั้น")
+    test_count = st.selectbox(
+        "จำนวนงวดทดสอบล่าสุด",
+        [20, 30, 60, 100, 200],
+        index=1,
+        help="ใช้ Walk-forward: ทุกงวดทดสอบจะใช้เฉพาะข้อมูลที่มาก่อนงวดนั้น",
+    )
+    st.caption("เปรียบเทียบ AI Top 10 กับ Random Top 10 บนงวดทดสอบชุดเดียวกัน")
     if len(rows_selected) < 12:
         st.warning("ข้อมูลของวันที่เลือกยังไม่เพียงพอสำหรับ Backtest (ต้องมีอย่างน้อย 12 งวด)")
     elif st.button("เริ่ม Backtest", key="backtest_run", type="primary"):
-        with st.spinner("กำลังทดสอบย้อนหลัง..."):
-            results = thai_backtest(rows_selected, 10, 30)
-            st.dataframe(pd.DataFrame([
-                {"ประเภทรางวัล": name, "ถูกอย่างน้อยหนึ่งเลข": f"{hit}/{tested}",
-                 "อัตราตรงตัว": f"{hit/tested:.2%}" if tested else "ไม่มีข้อมูล"}
-                for name, (hit, tested) in results.items()
-            ]), use_container_width=True, hide_index=True)
+        with st.spinner("กำลังทดสอบย้อนหลังและเปรียบเทียบ Random..."):
+            results = thai_backtest_comparison(rows_selected, 10, test_count)
+            table = []
+            for name, item in results.items():
+                tested = item["tested"]
+                ai_rate = f'{item["ai_rate"]:.2%}' if tested else "ไม่มีข้อมูล"
+                random_rate = f'{item["random_rate"]:.2%}' if tested else "ไม่มีข้อมูล"
+                delta = f'{(item["ai_rate"] - item["random_rate"]):+.2%}' if tested else "ไม่มีข้อมูล"
+                table.append({
+                    "ประเภทรางวัล": name,
+                    "AI ถูก": f'{item["ai_hits"]}/{tested}',
+                    "AI อัตราตรง": ai_rate,
+                    "Random ถูก": f'{item["random_hits"]}/{tested}',
+                    "Random อัตราตรง": random_rate,
+                    "AI − Random": delta,
+                })
+            st.dataframe(pd.DataFrame(table), use_container_width=True, hide_index=True)
+            st.caption(
+                f"ทดสอบสูงสุด {test_count} งวด · AI Top 10 เทียบ Random Top 10 "
+                "ด้วยจำนวนงวดเดียวกันและการสุ่มแบบทำซ้ำได้"
+            )
             st.caption("ผล Backtest เป็นผลย้อนหลัง ไม่รับประกันผลในอนาคต")
 
 with tabs[5]:
